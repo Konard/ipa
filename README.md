@@ -1,3 +1,3 @@
-# [ipa](konard.github.io/ipa/)
+# [ipa](https://konard.github.io/ipa/)
 
 IPA translation page
