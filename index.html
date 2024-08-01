@@ -1,3 +1,89 @@
-<h1>Test header</h1>
-<p>Test paragraph</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English to IPA Translator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
 
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-section, .output-section {
+            width: 100%;
+            text-align: center;
+        }
+
+        .input-section textarea {
+            width: 60%;
+            height: 100px;
+            background-color: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            font-size: 1.5rem;
+            padding: 10px;
+        }
+
+        .output-section {
+            margin-top: 20px;
+            font-size: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-section">
+            <textarea id="englishText" placeholder="Type English text here..."></textarea>
+        </div>
+        <div class="output-section" id="ipaOutput">
+            IPA translation will appear here...
+        </div>
+    </div>
+
+    <script>
+        const ipaDictionary = {
+            "hello": "həˈloʊ",
+            "world": "wɜːrld",
+            "example": "ɪɡˈzæmpəl",
+            "translate": "trænzˈleɪt",
+            "into": "ˈɪntu",
+            "ipa": "ˌaɪpiːˈeɪ",
+            "apple": "ˈæpəl",
+            "banana": "bəˈnænə",
+            // Add more words as needed
+        };
+
+        function translateToIPA(text) {
+            return text.split(' ').map(word => {
+                const lowerCaseWord = word.toLowerCase();
+                return ipaDictionary[lowerCaseWord] || word;
+            }).join(' ');
+        }
+
+        document.getElementById('englishText').addEventListener('input', function() {
+            const englishText = this.value;
+            const ipaTranslation = translateToIPA(englishText);
+            document.getElementById('ipaOutput').textContent = ipaTranslation;
+        });
+    </script>
+</body>
+</html>
