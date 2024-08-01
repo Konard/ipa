@@ -1,91 +1,116 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English to IPA Translator</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>English to IPA translation</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background-color: #000;
-            color: #0f0;
-            font-family: 'Roboto Mono', monospace;
-        }
-
-        .container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .input-section, .output-section {
-            width: 100%;
-            text-align: center;
-        }
-
-        .input-section textarea {
-            width: 60%;
-            height: 100px;
-            background-color: #000;
-            color: #0f0;
-            border: none;
-            outline: none;
-            font-size: 1.5rem;
-            padding: 10px;
-            resize: none;
-        }
-
-        .output-section {
-            margin-top: 20px;
-            font-size: 2rem;
-        }
+      @import url("https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap");
+      * {
+        margin: 0;
+        padding: 0;
+        border: none;
+        outline: none;
+        font-size: 5vh;
+        font-family: "Roboto Mono", monospace;
+        background-color: #000;
+        color: #0f0;
+        overflow: hidden;
+      }
+      *::selection {
+        color: #000;
+        background: #0f0;
+      }
+      body {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      #input-section,
+      #output-section {
+        width: 100%;
+        height: 50%;
+        display: flex;
+        align-items: center;
+      }
+      #input,
+      #output {
+        width: 100%;
+        text-align: center;
+        white-space: pre-wrap;
+      }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="input-section">
-            <textarea id="englishText" placeholder="Type English text here..."></textarea>
-        </div>
-        <div class="output-section" id="ipaOutput">
-            IPA translation will appear here...
-        </div>
+  </head>
+  <body>
+    <div id="input-section">
+      <pre id="input" contenteditable></pre>
     </div>
-
+    <div id="output-section">
+      <pre id="output"></pre>
+    </div>
     <script>
-        const ipaDictionary = {
-            "hello": "həˈloʊ",
-            "world": "wɜːrld",
-            "example": "ɪɡˈzæmpəl",
-            "translate": "trænzˈleɪt",
-            "into": "ˈɪntu",
-            "ipa": "ˌaɪpiːˈeɪ",
-            "apple": "ˈæpəl",
-            "banana": "bəˈnænə",
-            // Add more words as needed
-        };
-
-        function translateToIPA(text) {
-            return text.split(' ').map(word => {
-                const lowerCaseWord = word.toLowerCase();
-                return ipaDictionary[lowerCaseWord] || word;
-            }).join(' ');
-        }
-
-        document.getElementById('englishText').addEventListener('input', function() {
-            const englishText = this.value;
-            const ipaTranslation = translateToIPA(englishText);
-            document.getElementById('ipaOutput').textContent = ipaTranslation;
+      const url =
+        "https://raw.githubusercontent.com/open-dict-data/ipa-dict/master/data/en_US.txt";
+      let dictionary = {};
+      async function loadAndTransformDictionary(url) {
+        const response = await fetch(url);
+        const text = await response.text();
+        const lines = text.split("\n");
+        const dictionary = {};
+        lines.forEach((line) => {
+          if (line.trim()) {
+            const [word, ipa] = line.split("\t");
+            const ipaVariants = ipa
+              .split(", /")
+              .map((item) => item.replace(/\//g, ""));
+            dictionary[word.trim()] = ipaVariants;
+          }
         });
+        return dictionary;
+      }
+      loadAndTransformDictionary(url).then((result) => {
+        dictionary = result;
+      });
+      function translateWord(word) {
+        const lowerCaseWord = word.toLowerCase();
+        const translation = dictionary[lowerCaseWord];
+        return translation?.[0] || word;
+      }
+      function translateSymbolicSequence(symbolic) {
+        const wordGroups = [
+          ...symbolic.matchAll(/([^\p{L}]*)([\p{L}]+)([^\p{L}]*)/gu),
+        ];
+        if (!wordGroups?.length) {
+          return symbolic;
+        }
+        return wordGroups
+          .map((wordGroup) => {
+            const parts = wordGroup.slice(1);
+            parts[1] = translateWord(parts[1]);
+            return parts.join("");
+          })
+          .join("");
+      }
+      function translateLine(line) {
+        return line.split(" ").map(translateSymbolicSequence).join(" ");
+      }
+      function translateText(text) {
+        return text.split("\n").map(translateLine).join("\n");
+      }
+      function translateElement() {
+        const input = this.innerText;
+        const ipaTranslation = translateText(input);
+        document.getElementById("output").innerText = ipaTranslation;
+      }
+      function initialize() {
+        const input = document.getElementById("input");
+        input.addEventListener("input", translateElement);
+        translateElement.apply(input);
+        const inputSeciton = document.getElementById("input-section");
+        inputSeciton.addEventListener("click", () => input.focus());
+        input.focus();
+      }
+      initialize();
     </script>
-</body>
+  </body>
 </html>
